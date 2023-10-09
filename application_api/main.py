@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -13,18 +14,23 @@ operations = {
 }
 
 
-# Ручка для выполнения операции и получения ID задачи
+class CalculationRequest(BaseModel):
+    x: int
+    y: int
+    operator: str
+
+
 @app.post("/calculate/")
-async def calculate(x: int, y: int, operator: str):
+async def calculate(request_data: CalculationRequest):
     global task_counter
     task_counter += 1
     task_id = task_counter
 
-    if operator not in operations:
+    if request_data.operator not in operations:
         raise HTTPException(status_code=422, detail="Invalid operator")
 
-    operation = operations[operator]
-    result = operation(x, y)
+    operation = operations[request_data.operator]
+    result = operation(request_data.x, request_data.y)
 
     if result is None:
         raise HTTPException(status_code=422, detail="Division by zero is not allowed")
@@ -33,7 +39,6 @@ async def calculate(x: int, y: int, operator: str):
     return {"task_id": task_id}
 
 
-# Ручка для получения результата задачи по ID
 @app.get("/result/{task_id}")
 async def get_result(task_id: int):
     task = tasks.get(task_id)
@@ -42,7 +47,6 @@ async def get_result(task_id: int):
     return {"result": task["result"]}
 
 
-# Ручка для получения списка задач и их статусов
 @app.get("/tasks/")
 async def get_tasks():
     return tasks
