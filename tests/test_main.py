@@ -8,7 +8,7 @@ client = TestClient(app)
 # Ваши тесты
 def test_calculate_valid():
     response = client.post("/calculate/", json={"x": 5, "y": 3, "operator": "+"})
-    assert response.status_code == 422
+    assert response.status_code == 200
 
 
 def test_calculate_invalid_operator():
